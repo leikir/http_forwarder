@@ -1,6 +1,13 @@
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 
+# Setup simplecov
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/dummy'
+end
+
+# load the dummy app
 require_relative "../spec/dummy/config/environment"
 
 RSpec.configure do |config|
