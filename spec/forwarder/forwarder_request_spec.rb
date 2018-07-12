@@ -22,6 +22,8 @@ RSpec.describe 'forward spec gem', type: :request do
         .to_return(status: 200, body: returned_body)
     stub_request(:put, 'http://doggos.woof/dogs/4')
         .to_return(status: 201, body: returned_body)
+    stub_request(:get, 'http://doggos.woof/dogs')
+        .to_return(status: 200, body: body)
   end
 
   it 'forward with modification on request' do
@@ -40,8 +42,9 @@ RSpec.describe 'forward spec gem', type: :request do
     expect(parsed_response['data']['id']).to eq(4)
   end
 
-  # it 'forward with modification' do
-  #   get '/dogs', params: body
-  #   expect(response.status).to eq(201)
-  # end
+  it 'forward without modification' do
+    get '/dogs'
+    expect(response.status).to eq(200)
+    expect(JSON.parse(response.body)['data']['name']).to eq('bobby')
+  end
 end
