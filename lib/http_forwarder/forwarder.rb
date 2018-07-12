@@ -22,6 +22,13 @@ module HttpForwarder
       end
       response = send_request
       if after
+        byebug
+        # making possible to modify the response body 
+        response.instance_eval do 
+          def body=(value)
+            @body = value
+          end
+        end
         send(after, response) if respond_to? after
       end
       render_response(response)
@@ -51,7 +58,7 @@ module HttpForwarder
 
     def routes
       r = Forwarder.config.routes
-      raise 'No routes specified for HttpForwarder::Forwarder' if r.empty?
+      raise 'No routes specified for HttpForwarder::Forwarder' if r.nil? || r.empty?
       r
     end
 

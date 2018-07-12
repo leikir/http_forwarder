@@ -1,3 +1,3 @@
 Rails.application.routes.draw do
-  resources :dummy, only: %i[create index]
+  resources :dogs, only: %i[create index]
 end
