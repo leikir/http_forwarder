@@ -13,38 +13,26 @@ module HttpForwarder
 
     private
 
-    def forward(opts = {})
-      before = opts[:before]
-      after = opts[:after]
-      @request = request.dup
-      if before
-        send(before, @request) if respond_to? before
-      end
-      response = send_request
-      if after
-        byebug
-        # making possible to modify the response body 
-        response.instance_eval do 
-          def body=(value)
-            @body = value
-          end
-        end
-        send(after, response) if respond_to? after
-      end
+    def forward_and_render
+      response = forward
       render_response(response)
     end
 
-    def send_request
+    def forward
       action = ACTIONS_MAP[action_name.to_sym]
       base_url = find_target
-      path = @request.original_fullpath
+      path = request.original_fullpath
+      body = request.raw_post
+      body, path = yield(body, path) if block_given?
+      # as path is not required, it can be destroyed in yield
+      path ||= request.original_fullpath
       HTTP.headers(
           accept: request.headers['Accept'],
           content_type: request.headers['Content-Type']
-      ).send(
+      ).request(
           action,
           "#{base_url}#{path}",
-          body: @request.raw_post
+          body: body
       )
     end
 
@@ -64,11 +52,7 @@ module HttpForwarder
 
     def render_response(resp)
       raw_body = resp.body.to_s
-      if raw_body.present?
-        render body: raw_body, status: resp.status, content_type: resp.content_type
-      else
-        head resp.status and return
-      end
+      render body: raw_body, status: resp.status, content_type: resp.content_type
     end
   end
 end
