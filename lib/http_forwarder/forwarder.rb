@@ -1,6 +1,6 @@
 # Forwards requests to registered services
 module HttpForwarder
-  module ForwarderController
+  module Forwarder
     # TODO Target must be configurable using external config file
     # maybe load YAML and read key: value
     TARGET = { dummy: 'http://another-dummy.org' }.freeze
