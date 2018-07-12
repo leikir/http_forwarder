@@ -1,9 +1,7 @@
 # Forwards requests to registered services
 module HttpForwarder
   module Forwarder
-    # TODO Target must be configurable using external config file
-    # maybe load YAML and read key: value
-    TARGET = { dummy: 'http://another-dummy.org' }.freeze
+    include ActiveSupport::Configurable
 
     ACTIONS_MAP = {
         show: :get,
@@ -31,7 +29,7 @@ module HttpForwarder
 
     def send_request
       action = ACTIONS_MAP[action_name.to_sym]
-      base_url = TARGET[controller_name.to_sym]
+      base_url = find_target
       path = @request.original_fullpath
       HTTP.headers(
           accept: request.headers['Accept'],
@@ -41,6 +39,20 @@ module HttpForwarder
           "#{base_url}#{path}",
           body: @request.raw_post
       )
+    end
+
+    def find_target
+      entries = routes.select { |hash| hash[:controller] == controller_name.to_sym }
+      return entries.first[:to] if entries.one?
+      action = entries.select { |hash| hash[:action] == action_name.to_sym }
+      raise 'Action route was not specified for the given controller' if action.empty?
+      action.first[:to]
+    end
+
+    def routes
+      r = Forwarder.config.routes
+      raise 'No routes specified for HttpForwarder::Forwarder' if r.empty?
+      r
     end
 
     def render_response(resp)
