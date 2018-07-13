@@ -25,10 +25,7 @@ class RouterConfigurator
   private 
 
   def add_route
-    if @action.nil?
-      @routes << { controller: @controller, to: @url }
-    else
-      @routes << { controller: @controller, action: @action, to: @url }
-    end
+    @routes << { controller: @controller, to: @url } and return if @action.nil?
+    @routes << { controller: @controller, action: @action, to: @url }
   end
 end

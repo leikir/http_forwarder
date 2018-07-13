@@ -27,12 +27,16 @@ RSpec.describe 'forward spec gem', type: :request do
   end
 
   before do
+    # we have to reload our initializer because it has been overwritten
+    # when we tested our forwarder model
+    require 'dummy/config/initializers/forwarder'
+    
     stub_request(:post, 'http://doggy.woof/dogs')
-        .to_return(status: 200, body: returned_body)
+      .to_return(status: 200, body: returned_body)
     stub_request(:put, 'http://doggos.woof/dogs/4')
-        .to_return(status: 201, body: returned_body)
+      .to_return(status: 201, body: returned_body)
     stub_request(:get, 'http://doggos.woof/dogs')
-        .to_return(status: 200, body: body)
+      .to_return(status: 200, body: body)
     stub_request(:get, 'http://kittykitty.miaw/cats')
       .to_return(status: 200)
     stub_request(:post, 'http://kittykitty.miaw/cats')

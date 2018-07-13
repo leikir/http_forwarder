@@ -26,10 +26,11 @@ module HttpForwarder
       headers = request.headers
       # todo clean headers
       # todo white headers config
-      yield(body, path) if block_given?
+      yield(body, path, headers) if block_given?
       # as path is not required, it can be destroyed in yield
       body = @body if defined? @body
       path = @path if defined? @path
+      headers = @headers if defined? @headers
       HTTP.headers(
           accept: request.headers['Accept'],
           content_type: request.headers['Content-Type']

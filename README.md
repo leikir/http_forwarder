@@ -1,9 +1,9 @@
-# HttpForwarder
+# About HttpForwarder
 ![Build Status](https://circleci.com/gh/leikir/http_forwarder.svg?style=shield)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/http_forwarder`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+HttpForwarder is a gem that lets you easily forward a request from your app to 
+a specified target. It also enables you to transform the request before doing so. 
+For example, it is very handy when it comes to service communications in a microservices architecture.
 
 ## Installation
 
@@ -21,16 +21,93 @@ Or install it yourself as:
 
     $ gem install http_forwarder
 
+To use it you'll also need to add the [http](https://github.com/httprb/http) gem for the gem to work: 
+
+```ruby
+gem 'http'
+```
+
 ## Usage
 
-TODO: Write usage instructions here
+### Setup
 
-## Development
+Once you installed the gem, you have to include it in the controller you want to use it in:
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+  include HttpForwarder::Forwarder
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Then you need to set up your routes in a new file `config/initializers/forwarder.rb` like 
+this:
+
+```ruby
+HttpForwarder::Forwarder.configure do |config|
+  config.router.forward(:dogs).on(:create).to('http://doggy.woof')
+  config.router.forward(:dogs).on(:index).to('http://doggos.woof')
+  config.router.forward(:cats).to('http://kittykitty.miaw')
+end
+```
+The argument of the method `forward()`is your controller name, the argument of the method `on()` is your method name and the argument of the method `to()` is the target you want to forward to. For example, in the example above, the method `create` of the dogs controller redirects the request to `http://doggy.woof`.
+It is mandatory to specify the controller and the target, whereas if you don't specify the action it will assume that all your controller methods redirect to the same url. In the example above, all the cats controller actions will redirect to `http://kittykitty.miaw`. 
+
+### Forwarding without modification
+
+If you want to forward the request and render the response without any modification whatsoever, simply user the `forward_and_render` method:
+
+```ruby
+def index
+  forward_and_render
+end
+```
+
+If you want to manipulate the response, simply use the `forward` method :
+
+```ruby 
+def update
+  response = forward
+  parsed_response = JSON.parse(response.body)
+  parsed_response['data']['name'] = 'droopy'
+  render json: parsed_response, status: response.status
+end 
+```
+
+### Modifying the request before forwarding
+
+Sometimes you might want to change the arriving request before forwarding it. To do so, you can pass a proc to our forward method to make the changes you want :
+
+```ruby
+class DogsController < ApplicationController
+
+  include HttpForwarder::Forwarder
+
+  def initialize
+    super
+    set_up_procs
+  end
+
+  def create
+    response = forward do |body|
+      @update_dog_name.call(body)
+    end
+    render_response(response_from_other_api)
+  end
+
+  private
+
+  def set_up_procs
+    @update_dog_name = Proc.new do |body|
+      body = JSON.parse(body)
+      body['data']['name'] = 'rex'
+      @body = body.to_json
+    end
+  end
+end
+```
+
+In the example above we update the `body`, but it is also possible to change the `path` of the request or the `headers`.
+<strong> Be careful though ! </strong> The variable you want to modify must contains <stong> @ </stong> before affecting the value.
+
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/http_forwarder.
+Bug reports and pull requests are welcome on GitHub at https://github.com/leikir/http_forwarder.
