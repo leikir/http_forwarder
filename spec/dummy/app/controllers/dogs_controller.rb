@@ -1,5 +1,7 @@
 class DogsController < ApplicationController
 
+  include HttpForwarder::Forwarder
+
   def initialize
     super
     set_up_procs

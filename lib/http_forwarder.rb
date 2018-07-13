@@ -1,14 +1,9 @@
 require 'http_forwarder/version'
 require 'http_forwarder/forwarder'
-require 'http_forwarder/exceptions/no_route_exception'
+require 'http_forwarder/router_configurator'
 
 module HttpForwarder
-  class Engine < Rails::Engine
-    ActionController::Base.send :include, HttpForwarder::Forwarder
-  end
-
   HttpForwarder::Forwarder.configure do |config|
-    config.routes = []
-    config.forward = ForwarderConfigurator.new
+    config.router = RouterConfigurator.new
   end
 end

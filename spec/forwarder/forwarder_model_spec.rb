@@ -5,9 +5,8 @@ RSpec.describe HttpForwarder::Forwarder, type: :model do
     let(:target) { 'http://another-dummy.org' }
     before do
       HttpForwarder::Forwarder.configure do |config|
-        config.clear
-        config.routes = []
-        config.routes << { controller: :dummy, action: :index, to: target }
+        config.router = RouterConfigurator.new
+        config.router.forward(:dummy).on(:index).to(target)
       end
       class DummyClass
         include HttpForwarder::Forwarder
@@ -27,7 +26,7 @@ RSpec.describe HttpForwarder::Forwarder, type: :model do
     context 'multiple routes' do 
       before do 
         HttpForwarder::Forwarder.configure do |config|
-          config.routes << { controller: :dummy, action: :create, to: target }
+          config.router.forward(:dummy).on(:create).to(target)
         end
       end
 
@@ -41,24 +40,6 @@ RSpec.describe HttpForwarder::Forwarder, type: :model do
         expect(subject[1][:to]).to eq(target)
       end
     end
-
-    # context 'find destination' do 
-    #   context 'success' do 
-    #     before do 
-    #       HttpForwarder::Forwarder.configure do |config|
-    #         config.routes << { controller: :dummy, action: :create, to: target }
-    #       end
-    #     end
-        
-    #     subject { DummyClass.new.send(:routes) }
-
-
-    #     # it 'raise a no route error' do 
-    #     #   expect{subject}.to raise(RuntimeError)
-    #     # end
-    #   end
-    # end
-
 
   end
 end

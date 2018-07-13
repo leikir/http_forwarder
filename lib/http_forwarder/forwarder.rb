@@ -28,8 +28,8 @@ module HttpForwarder
       # todo white headers config
       yield(body, path) if block_given?
       # as path is not required, it can be destroyed in yield
-      path ||= request.original_fullpath
       body = @body if defined? @body
+      path = @path if defined? @path
       HTTP.headers(
           accept: request.headers['Accept'],
           content_type: request.headers['Content-Type']
@@ -45,11 +45,12 @@ module HttpForwarder
       return entries.first[:to] if entries.one?
       action = entries.select { |hash| hash[:action] == action_name.to_sym }
       raise 'Action route was not specified for the given controller' if action.empty?
+      raise 'two routes have been defined for two same actions' if action.size > 1
       action.first[:to]
     end
 
     def routes
-      r = Forwarder.config.routes
+      r = Forwarder.config.router.routes
       raise 'No routes specified for HttpForwarder::Forwarder' if r.nil? || r.empty?
       r
     end
