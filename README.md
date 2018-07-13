@@ -10,7 +10,7 @@ For example, it is very handy when it comes to service communications in a micro
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'http_forwarder'
+gem 'http_forwarder', github: 'leikir/http_forwarder'
 ```
 
 And then execute:
@@ -20,12 +20,6 @@ And then execute:
 Or install it yourself as:
 
     $ gem install http_forwarder
-
-To use it you'll also need to add the [http](https://github.com/httprb/http) gem for the gem to work: 
-
-```ruby
-gem 'http'
-```
 
 ## Usage
 
@@ -50,7 +44,9 @@ end
 The argument of the method `forward()`is your controller name, the argument of the method `on()` is your method name and the argument of the method `to()` is the target you want to forward to. For example, in the example above, the method `create` of the dogs controller redirects the request to `http://doggy.woof`.
 It is mandatory to specify the controller and the target, whereas if you don't specify the action it will assume that all your controller methods redirect to the same url. In the example above, all the cats controller actions will redirect to `http://kittykitty.miaw`. 
 
-### Forwarding without modification
+### Forwarding
+
+#### Forwarding without modification
 
 If you want to forward the request and render the response without any modification whatsoever, simply user the `forward_and_render` method:
 
@@ -60,7 +56,9 @@ def index
 end
 ```
 
-If you want to manipulate the response, simply use the `forward` method :
+#### Forwarding with response modification
+
+If you want to manipulate the response, simply use the `forward` method, then manipulate the response object :
 
 ```ruby 
 def update
@@ -71,7 +69,7 @@ def update
 end 
 ```
 
-### Modifying the request before forwarding
+#### Modifying the request before forwarding
 
 Sometimes you might want to change the arriving request before forwarding it. To do so, you can pass a proc to our forward method to make the changes you want :
 
@@ -80,34 +78,43 @@ class DogsController < ApplicationController
 
   include HttpForwarder::Forwarder
 
-  def initialize
-    super
-    set_up_procs
-  end
-
   def create
-    response = forward do |body|
-      @update_dog_name.call(body)
-    end
-    render_response(response_from_other_api)
-  end
-
-  private
-
-  def set_up_procs
-    @update_dog_name = Proc.new do |body|
+    response = forward do |body, _path, _headers|
       body = JSON.parse(body)
       body['data']['name'] = 'rex'
       @body = body.to_json
     end
+    render_response(response_from_other_api)
   end
 end
 ```
 
-In the example above we update the `body`, but it is also possible to change the `path` of the request or the `headers`.
-<strong> Be careful though ! </strong> The variable you want to modify must contains <stong> @ </stong> before affecting the value.
+In the example above we updated a json `body` to alter a key inside it.
+We didn't modify the `path` or `headers` so we could have went for:
+```ruby
+  # modify only body
+  forward do |body|
+  ...
+  # modify only path
+  forward do |_body, path|
+  ...
+  # modify only body and headers
+  forward do |body, _path, headers|
+end
+```
+**To effectively modify the variable inside the block you must assign value to the instance variable**
+```ruby
+  @body = body.to_json
+  
+  @body = ''
+  
+  @body = 'nil'
+  
+  @path = '/api/another/path'
+  
+  @headers = headers.select { |header| header == 'Content-Type'}
+```
 
-
-## Contributing
+## Contributing 
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/leikir/http_forwarder.
