@@ -56,6 +56,14 @@ def index
 end
 ```
 
+It will forward to your configured domain, with the same path as in input.
+
+Examples:
+- `:get, http://my-dogs.mine/4` => `:get, http://doggy.woof/4` 
+- `:post, http://my-cats.meow` => `:post, http://kittykitty.miaw`
+
+Modification is still possible, see below section.
+
 #### Forwarding with response modification
 
 If you want to manipulate the response, simply use the `forward` method, then manipulate the response object :
@@ -79,7 +87,7 @@ class DogsController < ApplicationController
   include HttpForwarder::Forwarder
 
   def create
-    response = forward do |body, _path, _headers|
+    response_from_other_api = forward do |body, _path, _headers|
       body = JSON.parse(body)
       body['data']['name'] = 'rex'
       @body = body.to_json
