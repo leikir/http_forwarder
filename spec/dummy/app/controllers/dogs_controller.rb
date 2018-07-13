@@ -30,7 +30,7 @@ class DogsController < ApplicationController
     @update_dog_name = Proc.new do |body|
       body = JSON.parse(body)
       body['data']['name'] = 'rex'
-      body.to_json
+      @body = body.to_json
     end
   end
 end

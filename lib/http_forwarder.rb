@@ -9,5 +9,6 @@ module HttpForwarder
 
   HttpForwarder::Forwarder.configure do |config|
     config.routes = []
+    config.forward = ForwarderConfigurator.new
   end
 end

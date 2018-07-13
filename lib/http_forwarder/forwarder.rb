@@ -23,9 +23,13 @@ module HttpForwarder
       base_url = find_target
       path = request.original_fullpath
       body = request.raw_post
-      body, path = yield(body, path) if block_given?
+      headers = request.headers
+      # todo clean headers
+      # todo white headers config
+      yield(body, path) if block_given?
       # as path is not required, it can be destroyed in yield
       path ||= request.original_fullpath
+      body = @body if defined? @body
       HTTP.headers(
           accept: request.headers['Accept'],
           content_type: request.headers['Content-Type']
