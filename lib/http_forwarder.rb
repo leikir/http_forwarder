@@ -1,9 +1,9 @@
 require 'http_forwarder/version'
-require 'http_forwarder/forwarder_controller'
+require 'http_forwarder/forwarder'
+require 'http_forwarder/router_configurator'
 
 module HttpForwarder
-  # TODO make this happens
-  # class ApplicationController
-  #   class_eval 'include HttpForwarder::ForwarderController'
-  # end
+  HttpForwarder::Forwarder.configure do |config|
+    config.router = RouterConfigurator.new
+  end
 end
