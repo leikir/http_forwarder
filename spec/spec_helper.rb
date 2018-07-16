@@ -7,6 +7,8 @@ SimpleCov.start do
   add_filter '/spec/dummy'
 end
 
+require 'byebug'
+
 # load the dummy app
 require_relative "../spec/dummy/config/environment"
 

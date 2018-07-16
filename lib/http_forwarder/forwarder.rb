@@ -1,9 +1,7 @@
 # Forwards requests to registered services
 module HttpForwarder
   module Forwarder
-    # TODO Target must be configurable using external config file
-    # maybe load YAML and read key: value
-    TARGET = { dummy: 'http://another-dummy.org' }.freeze
+    include ActiveSupport::Configurable
 
     ACTIONS_MAP = {
         show: :get,
@@ -15,41 +13,52 @@ module HttpForwarder
 
     private
 
-    def forward(opts = {})
-      before = opts[:before]
-      after = opts[:after]
-      @request = request.dup
-      if before
-        send(before, @request) if respond_to? before
-      end
-      response = send_request
-      if after
-        send(after, response) if respond_to? after
-      end
+    def forward_and_render
+      response = forward
       render_response(response)
     end
 
-    def send_request
+    def forward
       action = ACTIONS_MAP[action_name.to_sym]
-      base_url = TARGET[controller_name.to_sym]
-      path = @request.original_fullpath
+      base_url = find_target
+      path = request.original_fullpath
+      body = request.raw_post
+      headers = request.headers
+      # todo clean headers
+      # todo white headers config
+      yield(body, path, headers) if block_given?
+      # as path is not required, it can be destroyed in yield
+      body = @body if defined? @body
+      path = @path if defined? @path
+      headers = @headers if defined? @headers
       HTTP.headers(
           accept: request.headers['Accept'],
           content_type: request.headers['Content-Type']
-      ).send(
+      ).request(
           action,
           "#{base_url}#{path}",
-          body: @request.raw_post
+          body: body
       )
+    end
+
+    def find_target
+      entries = routes.select { |hash| hash[:controller] == controller_name.to_sym }
+      return entries.first[:to] if entries.one?
+      action = entries.select { |hash| hash[:action] == action_name.to_sym }
+      raise 'Action route was not specified for the given controller' if action.empty?
+      raise 'two routes have been defined for two same actions' if action.size > 1
+      action.first[:to]
+    end
+
+    def routes
+      r = Forwarder.config.router.routes
+      raise 'No routes specified for HttpForwarder::Forwarder' if r.nil? || r.empty?
+      r
     end
 
     def render_response(resp)
       raw_body = resp.body.to_s
-      if raw_body.present?
-        render body: raw_body, status: resp.status, content_type: resp.content_type
-      else
-        head resp.status and return
-      end
+      render body: raw_body, status: resp.status, content_type: resp.content_type
     end
   end
 end
