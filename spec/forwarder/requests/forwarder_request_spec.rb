@@ -2,18 +2,19 @@ require 'rails_helper'
 
 RSpec.describe 'forward spec gem', type: :request do
   let(:body) do
-    { data: {
+    {
+      data: {
         name: 'bobby'
-    }
+      }
     }.to_json
   end
 
   let(:returned_body) do
     {
-        data: {
+      data: {
             id: 4,
             name: 'rex'
-        }
+      }
     }.to_json
   end
 
