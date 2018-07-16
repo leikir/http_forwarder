@@ -40,6 +40,5 @@ RSpec.describe HttpForwarder::Forwarder, type: :model do
         expect(subject[1][:to]).to eq(target)
       end
     end
-
   end
 end
