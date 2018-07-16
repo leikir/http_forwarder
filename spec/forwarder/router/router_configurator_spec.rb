@@ -17,7 +17,6 @@ RSpec.describe RouterConfigurator do
       expect(r.size).to eq(1)
       expect(r.first[:to]).to eq(target)
     end
-
   end
 
   context 'we add several routes' do
