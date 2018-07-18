@@ -31,13 +31,10 @@ module HttpForwarder
       body = @body if defined? @body
       path = @path if defined? @path
       headers = @headers if defined? @headers
-      HTTP.headers(
-          accept: request.headers['Accept'],
-          content_type: request.headers['Content-Type']
-      ).request(
-          action,
-          "#{base_url}#{path}",
-          body: body
+      HTTP.headers(headers).request(
+        action,
+        "#{base_url}#{path}",
+        body: body
       )
     end
 
