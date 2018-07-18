@@ -9,6 +9,14 @@ RSpec.describe 'forward spec gem', type: :request do
     }.to_json
   end
 
+  let(:modified_body) do 
+    {
+      data: {
+        name: 'rocky'
+      }
+    }.to_json
+  end
+
   let(:returned_body) do
     {
       data: {
@@ -32,8 +40,9 @@ RSpec.describe 'forward spec gem', type: :request do
     # when we tested our forwarder model
     require 'dummy/config/initializers/forwarder'
     
-    stub_request(:post, 'http://doggy.woof/dogs')
-      .to_return(status: 200, body: returned_body)
+    stub_request(:post, 'http://doggy.woof/doggos')
+      .with(body: modified_body, headers: { 'Content-Type' => 'blabla/json' })
+      .to_return(status: 200)
     stub_request(:put, 'http://doggos.woof/dogs/4')
       .to_return(status: 201, body: returned_body)
     stub_request(:get, 'http://doggos.woof/dogs')
@@ -47,9 +56,6 @@ RSpec.describe 'forward spec gem', type: :request do
   it 'forward with modification on request' do
     post '/dogs', params: body
     expect(response.status).to eq(200)
-    parsed_response = JSON.parse(response.body)
-    expect(parsed_response['data']['name']).to eq('rex')
-    expect(parsed_response['data']['id']).to eq(4)
   end
 
   it 'forward with modification on response' do
