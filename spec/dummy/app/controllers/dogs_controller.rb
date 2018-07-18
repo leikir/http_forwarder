@@ -13,8 +13,8 @@ class DogsController < ApplicationController
 
   # modify the dog name to rex before forwarding the request
   def create
-    response_from_other_api = forward do |body|
-      @update_dog_name.call(body)
+    response_from_other_api = forward do |body, path, headers|
+      @update_dog_name.call(body, path, headers)
     end
     render_response(response_from_other_api)
   end
@@ -29,10 +29,13 @@ class DogsController < ApplicationController
   private
 
   def set_up_procs
-    @update_dog_name = Proc.new do |body|
+    @update_dog_name = Proc.new do |body, path, headers|
       body = JSON.parse(body)
-      body['data']['name'] = 'rex'
+      body['data']['name'] = 'rocky'
       @body = body.to_json
+      @path = '/doggos'
+      @headers = headers
+      @headers['Content-Type'] = 'blabla/json'
     end
   end
 end
