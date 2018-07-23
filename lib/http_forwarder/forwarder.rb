@@ -4,11 +4,11 @@ module HttpForwarder
     include ActiveSupport::Configurable
 
     ACTIONS_MAP = {
-        show: :get,
-        index: :get,
-        create: :post,
-        update: :put,
-        destroy: :delete
+      show: :get,
+      index: :get,
+      create: :post,
+      update: :put,
+      destroy: :delete
     }.freeze
 
     private
