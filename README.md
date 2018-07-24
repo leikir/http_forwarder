@@ -1,8 +1,8 @@
 # About HttpForwarder
 ![Build Status](https://circleci.com/gh/leikir/http_forwarder.svg?style=shield)
 
-HttpForwarder is a gem that lets you easily forward a request from your app to 
-a specified target. It also enables you to transform the request before doing so. 
+HttpForwarder is a gem that lets you easily forward a request from your app to
+a specified target. It also enables you to transform the request before doing so.
 For example, it is very handy when it comes to service communications in a microservices architecture.
 
 ## Installation
@@ -31,7 +31,7 @@ Once you installed the gem, you have to include it in the controller you want to
   include HttpForwarder::Forwarder
 ```
 
-Then you need to set up your routes in a new file `config/initializers/forwarder.rb` like 
+Then you need to set up your routes in a new file `config/initializers/forwarder.rb` like
 this:
 
 ```ruby
@@ -42,8 +42,12 @@ HttpForwarder::Forwarder.configure do |config|
 end
 ```
 The argument of the method `forward()`is your controller name, the argument of the method `on()` is your method name and the argument of the method `to()` is the target you want to forward to. For example, in the example above, the method `create` of the dogs controller redirects the request to `http://doggy.woof`.
-It is mandatory to specify the controller and the target, whereas if you don't specify the action it will assume that all your controller methods redirect to the same url. In the example above, all the cats controller actions will redirect to `http://kittykitty.miaw`. 
-
+It is mandatory to specify the controller and the target, whereas if you don't specify the action it will assume that all your controller methods redirect to the same url. In the example above, all the cats controller actions will redirect to `http://kittykitty.miaw`.
+#### Headers whitelist
+You can whitelist the headers you want to forward.
+```ruby
+config.headers.allow(%w[Accept Content-Type])
+```
 ### Forwarding
 
 #### Forwarding without modification
@@ -59,7 +63,7 @@ end
 It will forward to your configured domain, with the same path as in input.
 
 Examples:
-- `:get, http://my-dogs.mine/4` => `:get, http://doggy.woof/4` 
+- `:get, http://my-dogs.mine/4` => `:get, http://doggy.woof/4`
 - `:post, http://my-cats.meow` => `:post, http://kittykitty.miaw`
 
 Modification is still possible, see below section.
@@ -68,13 +72,13 @@ Modification is still possible, see below section.
 
 If you want to manipulate the response, simply use the `forward` method, then manipulate the response object :
 
-```ruby 
+```ruby
 def update
   response = forward
   parsed_response = JSON.parse(response.body)
   parsed_response['data']['name'] = 'droopy'
   render json: parsed_response, status: response.status
-end 
+end
 ```
 
 #### Modifying the request before forwarding
@@ -113,16 +117,16 @@ end
 **To effectively modify the variable inside the block you must assign value to the instance variable**
 ```ruby
   @body = body.to_json
-  
+
   @body = ''
-  
+
   @body = 'nil'
-  
+
   @path = '/api/another/path'
-  
+
   @headers = headers.select { |header| header == 'Content-Type'}
 ```
 
-## Contributing 
+## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/leikir/http_forwarder.

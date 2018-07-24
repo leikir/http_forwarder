@@ -22,7 +22,7 @@ class RouterConfigurator
     self
   end
 
-  private 
+  private
 
   def add_route
     @routes << { controller: @controller, to: @url } and return if @action.nil?
