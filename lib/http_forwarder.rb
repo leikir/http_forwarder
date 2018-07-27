@@ -1,9 +1,7 @@
+require 'http_forwarder/configurator'
 require 'http_forwarder/version'
 require 'http_forwarder/forwarder'
 require 'http_forwarder/router_configurator'
+require 'http_forwarder/headers_configurator'
 
-module HttpForwarder
-  HttpForwarder::Forwarder.configure do |config|
-    config.router = RouterConfigurator.new
-  end
-end
+HttpForwarder.init_config
