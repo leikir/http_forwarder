@@ -1,17 +1,17 @@
 # Forwards requests to registered services
 module HttpForwarder
   module Forwarder
+    private
+
     include ActiveSupport::Configurable
 
     ACTIONS_MAP = {
-        show: :get,
-        index: :get,
-        create: :post,
-        update: :put,
-        destroy: :delete
+      show: :get,
+      index: :get,
+      create: :post,
+      update: :put,
+      destroy: :delete
     }.freeze
-
-    private
 
     def forward_and_render
       response = forward
@@ -23,10 +23,10 @@ module HttpForwarder
       base_url = find_target
       path = request.original_fullpath
       body = request.raw_post
-      headers = request.headers
-      # todo clean headers
-      # todo white headers config
+      headers = allowed_headers
+
       yield(body, path, headers) if block_given?
+
       # as path is not required, it can be destroyed in yield
       body = @body if defined? @body
       path = @path if defined? @path
@@ -48,9 +48,23 @@ module HttpForwarder
     end
 
     def routes
-      r = Forwarder.config.router.routes
-      raise 'No routes specified for HttpForwarder::Forwarder' if r.nil? || r.empty?
-      r
+      Forwarder.config.router.routes.presence ||
+        raise('No routes specified for HttpForwarder::Forwarder')
+    end
+
+    def allowed_headers
+      if Forwarder.config.headers.allowed.present?
+        extracted_headers
+      else
+        request.headers
+      end
+    end
+
+    # I can't use slice here since the keys are processed in a private method
+    def extracted_headers
+      Forwarder.config.headers.allowed.each_with_object({}) do |key, h|
+        h[key] = request.headers[key]
+      end
     end
 
     def render_response(resp)
